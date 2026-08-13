@@ -20,6 +20,7 @@ Essential Datadog skills for AI agents.
 | **dd-azure-integration** | Connect Azure subscriptions or management groups to Datadog with Terraform - Entra app registration, Monitoring Reader |
 | **dd-browser-sdk** | Browser SDK setup, RUM, Logs, Session Replay, version migration |
 | **dd-docs** | Search Datadog documentation |
+| **dd-gcp-integration** | Connect GCP projects or folders to Datadog with Terraform - keyless service-account impersonation |
 | **dd-llmo** | LLM Observability traces, experiments, evals |
 | **dd-logs** | Search logs, pipelines, archives |
 | **dd-monitors** | Create, manage, mute monitors and alerts |
