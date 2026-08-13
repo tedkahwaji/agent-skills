@@ -17,6 +17,7 @@ Essential Datadog skills for AI agents.
 | **dd-apm** | Traces, services, performance analysis |
 | **dd-apps**              | Build Datadog Apps — scaffold, run, upload, publish, CI/CD |
 | **dd-aws-integration** | Connect an AWS account to Datadog with Terraform - cross-account IAM role, metrics and resource collection |
+| **dd-azure-integration** | Connect Azure subscriptions or management groups to Datadog with Terraform - Entra app registration, Monitoring Reader |
 | **dd-browser-sdk** | Browser SDK setup, RUM, Logs, Session Replay, version migration |
 | **dd-docs** | Search Datadog documentation |
 | **dd-llmo** | LLM Observability traces, experiments, evals |
