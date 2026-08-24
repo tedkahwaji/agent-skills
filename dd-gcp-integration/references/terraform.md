@@ -61,9 +61,14 @@ provider "datadog" {
 # Direct child projects of each folder. This filter matches on immediate parent, so projects nested in
 # sub-folders are NOT returned: they still inherit the folder-level IAM grants below, but they do not get
 # API enablement from this config. List nested folders explicitly, or name their projects in project_ids.
+#
+# This is the Cloud Resource Manager v1 projects.list grammar, NOT the gcloud --filter grammar used during
+# discovery: it runs server-side, has no AND/OR/NOT keywords (terms are space-separated and implicitly
+# ANDed), requires parent.type alongside parent.id, and has no projectId field. Google-managed sys-*
+# projects are therefore excluded client-side, in all_project_ids below.
 data "google_projects" "folder_projects" {
   for_each = toset(local.folder_ids)
-  filter   = "parent.id:${each.value} AND lifecycleState:ACTIVE AND NOT projectId:sys*"
+  filter   = "parent.type:folder parent.id:${each.value} lifecycleState:ACTIVE"
 }
 
 # The host project needs the IAM APIs regardless of whether it is monitored, because the service account
@@ -80,7 +85,10 @@ locals {
   all_project_ids = toset(
     concat(
       local.project_ids,
-      flatten([for f in data.google_projects.folder_projects : [for p in f.projects : p.project_id]])
+      flatten([
+        for f in data.google_projects.folder_projects :
+        [for p in f.projects : p.project_id if !startswith(p.project_id, "sys-")]
+      ])
     )
   )
 }
