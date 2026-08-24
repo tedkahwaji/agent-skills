@@ -400,10 +400,11 @@ Confirm to the user that their integration is configured and data will appear sh
   Check these before Phase 2; if the user lacks them, they need their Entra administrator rather than a
   retry.
 - The app registration secret expires after 1 year - remind the user they'll need to rotate it.
-- The Datadog API and app keys reach Terraform through `TF_VAR_*` at plan/apply time and are declared
-  `ephemeral = true`, so they appear in neither state nor a saved plan. Don't write them into a committed
-  `.tfvars` file or any other persistent file. (The *client secret* this template generates is a
-  separate matter - it is a resource attribute and does land in state; see below.)
+- The Datadog API and app keys are never passed to Terraform as values: the `datadog` provider reads
+  `DD_API_KEY` and `DD_APP_KEY` from the environment, so there are no root variables, no `-var=` arguments,
+  and nothing for Terraform to record in state or a saved plan. Don't declare key variables, and don't
+  write the keys into a committed `.tfvars` file or any other persistent file. (The *client secret* this
+  template generates is a separate matter - it is a resource attribute and does land in state; see below.)
 - Never run `terraform apply` without showing the plan to the user first.
 - The `azurerm` provider requires at least one subscription ID even when using management groups.
 - Unlike the AWS role and GCP impersonation flows, this one issues a **client secret** that Datadog
