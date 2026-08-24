@@ -88,8 +88,19 @@ command -v oci >/dev/null 2>&1 && echo "oci: available" || echo "oci: not instal
 ## Phase 1: Verify OCI Credentials
 
 Terraform's `oci` provider reads from `~/.oci/config`, so that file must exist and be complete before
-`terraform apply` can succeed. Check the required fields **without dumping the file** - an OCI profile can
-contain a `pass_phrase`, and printing the whole profile would put it in the transcript:
+`terraform apply` can succeed.
+
+**Settle the profile before running anything else in this skill.** If the user named a profile, export it
+now; every snippet below, every `oci` CLI call, and the module's `config_file_profile` all read the same
+value. Skip this and the checks validate `DEFAULT`, which can be a different tenancy and user than the one
+being installed - the checks then pass or fail on the wrong identity:
+
+```bash
+export OCI_CLI_PROFILE="TEAM"   # <- the profile the user named; omit only if they said DEFAULT
+```
+
+Then check the required fields **without dumping the file** - an OCI profile can contain a `pass_phrase`,
+and printing the whole profile would put it in the transcript:
 
 ```bash
 cfg="$HOME/.oci/config"
@@ -123,14 +134,15 @@ If the file is missing or incomplete, walk the user through setup:
 4. Copy the configuration file snippet that OCI displays after adding the key.
 5. Save it to `~/.oci/config` and ensure `key_file` points to the downloaded private key path.
 
-If the `oci` CLI is available, the user can also run `oci setup config` to generate the config
-interactively as an alternative to the manual steps above.
+If the `oci` CLI is available, the user can also run
+`oci setup config --profile "${OCI_CLI_PROFILE:-DEFAULT}"` to generate the config interactively as an
+alternative to the manual steps above.
 
 Validate that the credentials actually authenticate:
 
 **If the `oci` CLI is available:**
 ```bash
-oci iam region-subscription list 2>&1
+oci --profile "${OCI_CLI_PROFILE:-DEFAULT}" iam region-subscription list 2>&1
 ```
 If this succeeds, proceed. If it fails with an authentication error, help the user fix the config
 before continuing.
@@ -241,7 +253,10 @@ If existing `.tf` files are found, check for existing `datadog` or `oci` provide
 
 ### Generate Terraform
 
-The integration uses the official Datadog OCI Terraform module:
+The integration uses the official Datadog OCI Terraform module, pinned to a release tag. Terraform's
+lock file does not lock remote module revisions, so an unpinned Git source re-resolves the default
+branch on every fresh `init` - and this module creates IAM users, policies, API keys and Vault
+resources, so an upstream change would silently alter what an unchanged config provisions:
 
 ```hcl
 variable "datadog_api_key" {
@@ -257,7 +272,7 @@ variable "datadog_app_key" {
 }
 
 module "datadog_oci" {
-  source = "github.com/DataDog/oracle-cloud-integration//datadog-terraform-onboarding"
+  source = "github.com/DataDog/oracle-cloud-integration//datadog-terraform-onboarding?ref=datadog-integration-v1.1.17"
 
   datadog_api_key = var.datadog_api_key
   datadog_app_key = var.datadog_app_key
@@ -299,8 +314,8 @@ The module handles all resource provisioning:
 ### Apply Terraform
 
 1. Replace all `<PLACEHOLDER>` values - `<DD_SITE>` from Phase 0, `<TENANCY_OCID>` and `<USER_OCID>`
-   from Phase 2, `<OCI_CLI_PROFILE>` as the profile Phase 1 verified (`DEFAULT` unless the user set
-   `OCI_CLI_PROFILE`), and `<LOGS_ENABLED>` as `true` or `false`.
+   from Phase 2, `<OCI_CLI_PROFILE>` as the profile settled at the top of Phase 1, and `<LOGS_ENABLED>`
+   as `true` or `false`.
 2. Run `terraform init` to download the module.
 3. Plan, and **save the plan to a file**. Both keys reach Terraform as `TF_VAR_*` environment
    variables, never as `-var=` arguments, which would put them in Terraform's command line:
