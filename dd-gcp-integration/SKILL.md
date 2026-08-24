@@ -475,7 +475,8 @@ Confirm to the user that their integration is configured and data will appear sh
   `roles/serviceusage.serviceUsageConsumer`, which the service account itself receives, is not enough to
   *enable* an API.
 - The Datadog delegate principal ID is org-specific and must be fetched from the API - it cannot be hardcoded.
-- The Datadog API and app keys reach Terraform through `TF_VAR_*` at plan/apply time and are declared
-  `ephemeral = true`, so they appear in neither state nor a saved plan. Don't write them into a committed
-  `.tfvars` file or any other persistent file.
+- The Datadog API and app keys are never passed to Terraform as values: the `datadog` provider reads
+  `DD_API_KEY` and `DD_APP_KEY` from the environment, so there are no root variables, no `-var=` arguments,
+  and nothing for Terraform to record in state or a saved plan. Don't declare key variables, and don't
+  write the keys into a committed `.tfvars` file or any other persistent file.
 - Never run `terraform apply` without showing the plan to the user first.
