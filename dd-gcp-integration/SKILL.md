@@ -22,6 +22,17 @@ user a list, keep them in the loop, and pause for confirmation before `terraform
 
 ## Phase 0: Preflight
 
+**Terraform or OpenTofu.** Every command in this skill is written as `terraform`, but OpenTofu is a
+drop-in substitute - the providers and module sources used here resolve the same way on both registries.
+Check which binary the user actually has before Phase 1:
+
+```bash
+command -v terraform tofu
+```
+
+If only `tofu` is on the PATH, read every `terraform <subcommand>` below as `tofu <subcommand>`. If both
+are present, ask which one the user wants rather than guessing.
+
 **Datadog credentials.** Load `DD_SITE` / `DD_API_KEY` / `DD_APP_KEY` from the environment (falling back
 to `.env.local` / `.env`) and validate both keys - they fail independently:
 

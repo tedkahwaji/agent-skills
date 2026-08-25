@@ -22,6 +22,17 @@ user a list, keep them in the loop, and pause for confirmation before `terraform
 
 ## Phase 0: Preflight
 
+**Terraform or OpenTofu.** Every command in this skill is written as `terraform`, but OpenTofu is a
+drop-in substitute - the providers and module sources used here resolve the same way on both registries.
+Check which binary the user actually has before Phase 1:
+
+```bash
+command -v terraform tofu
+```
+
+If only `tofu` is on the PATH, read every `terraform <subcommand>` below as `tofu <subcommand>`. If both
+are present, ask which one the user wants rather than guessing.
+
 **Datadog credentials.** Load `DD_SITE` / `DD_API_KEY` / `DD_APP_KEY` from the environment (falling back
 to `.env.local` / `.env`) and validate both keys - they fail independently:
 
@@ -437,7 +448,8 @@ Provide links:
   For an identity-domain tenancy that means administrator rights on the target domain, since the module
   creates the service user and group there.
 - **The module requires Terraform `>= 1.5.0`** (its `providers.tf` declares `required_version = ">= 1.5.0"`).
-  An older CLI fails during `terraform init`, so check `terraform version` before Phase 3.
+  An older CLI fails during `terraform init`, so check `terraform version` before Phase 3. Every OpenTofu
+  release satisfies this constraint - its versions start at 1.6 - so `tofu version` needs no separate check.
 - **`existing_user_id` and `existing_group_id` are an inseparable pair.** The module has a precondition that
   fails when exactly one is set: pass both to reuse an existing user and group, or neither to have it create
   them.
